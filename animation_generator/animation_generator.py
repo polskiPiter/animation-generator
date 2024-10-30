@@ -1,42 +1,44 @@
-# Import modułu z funkcjami do generowania grafiki (graphics_ppm):
-from graphics_ppm import generate_checkered_pattern
+# Import modułów:
+from os.path import join
+from animations import generate_checkered_pattern
 
-# Funkcja do generowania tablicy (listy podlist) z pikselami:
-def generate_pixel_array(image_resolution):
+# Funkcja do generowania tablicy pikseli:
+def generate_pixel_array(resolution):
     pixel = {"Red": 0, "Green": 0, "Blue": 0}
-    pixel_array = []
-
-    for i in range(image_resolution[1]):
-        pixel_array.append([])
-        for _ in range(image_resolution[0]):
-            pixel_array[i].append(pixel.copy())
+    pixel_array = [[pixel.copy() for _ in range(resolution[0])] for _ in range(resolution[1])]
 
     return pixel_array
 
-# Funkcja do zapisywania plików w formacie ".ppm":
-def save_ppm_file(path_to_file, image_resolution):
-    header = "P3"
-    comment = "# Testowy obraz 3 (dwukolorowa Szachownica)."
+# Funkcja do generowania plików w formacie ".ppm":
+def create_ppm_file(resolution, pixel_array, file_path, frame_number):
+    file_header = "P3"
+    file_comment = f"# Frame {frame_number}."
     max_value_for_colors = 255
 
-    pixel_array = generate_pixel_array(image_resolution)
-    array_with_graphics = generate_checkered_pattern(pixel_array, image_resolution)
+    file_content = f"{file_header}\n{file_comment}\n{resolution[0]} {resolution[1]}\n{max_value_for_colors}"
 
-    file_content = f"{header}\n{comment}\n{image_resolution[0]} {image_resolution[1]}\n{max_value_for_colors}"
+    for h in range(resolution[1]):
+        for w in range(resolution[0]):
+            file_content += f"\n{pixel_array[h][w]["Red"]} {pixel_array[h][w]["Green"]} {pixel_array[h][w]["Blue"]}"
 
-    for i in range(image_resolution[1]):
-        for j in range(image_resolution[0]):
-            file_content += f"\n{array_with_graphics[i][j]["Red"]} {array_with_graphics[i][j]["Green"]} {array_with_graphics[i][j]["Blue"]}"
+    path = join(file_path, f"Frame {frame_number}.ppm")
 
-    with open(path_to_file, "w") as ppm_file:
+    with open(path, "w") as ppm_file:
         ppm_file.write(file_content)
 
 # Główna funkcja programu:
 def main():
-    path = r"D:\Kodowanie\Projekty\Python\animation-generator\data\Testowy obraz 3.ppm"
+    file_path = r"D:\Kodowanie\Projekty\Python\animation-generator\data\frames\ppm files"
     resolution = (1920, 1080)
+    pixel_array = generate_pixel_array(resolution)
+    
+    number_of_frames = 10
+    frame_number = 1
 
-    save_ppm_file(path, resolution)
+    while frame_number <= number_of_frames:
+        generate_checkered_pattern(resolution, pixel_array)
+        create_ppm_file(resolution, pixel_array, file_path, frame_number)
+        frame_number += 1
 
 # Uruchomienie programu:
 if __name__ == "__main__":
